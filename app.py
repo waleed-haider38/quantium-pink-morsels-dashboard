@@ -19,6 +19,7 @@ app.layout = html.Div(
             children=[
                 html.H1(
                     "Soul Foods Pink Morsels Sales Visualiser",
+                    id="app-header",
                     style={
                         "marginBottom": "10px",
                         "fontSize": "34px",
