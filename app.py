@@ -2,19 +2,18 @@ import pandas as pd
 from dash import Dash, dcc, html, Input, Output
 import plotly.express as px
 
-# Load formatted data from Task 2
+# Load formatted data from Task 2 (Columns are: sales, date, region)
 df = pd.read_csv("formatted_output.csv")
 
-# Clean and prepare fields
-df["Date"] = pd.to_datetime(df["Date"])
-df["Region"] = df["Region"].astype(str).str.lower().str.strip()
-
-REGIONS = ["all", "north", "east", "south", "west"]
+# Clean and prepare fields strictly matching lowercase schema
+df["date"] = pd.to_datetime(df["date"])
+df["region"] = df["region"].astype(str).str.lower().str.strip()
 
 app = Dash(__name__)
 
 app.layout = html.Div(
     children=[
+        # App Title Block
         html.Div(
             children=[
                 html.H1(
@@ -45,6 +44,7 @@ app.layout = html.Div(
             },
         ),
 
+        # Region Filter Picker Section
         html.Div(
             children=[
                 html.H3(
@@ -82,6 +82,7 @@ app.layout = html.Div(
             },
         ),
 
+        # Interactive Graph Workspace
         html.Div(
             children=[
                 dcc.Graph(
@@ -111,31 +112,33 @@ app.layout = html.Div(
     Input("region-filter", "value"),
 )
 def update_chart(selected_region):
+    # Fixed casing variables here
     if selected_region == "all":
         filtered_df = df.copy()
         chart_title = "Pink Morsels Sales Over Time - All Regions"
     else:
-        filtered_df = df[df["Region"] == selected_region].copy()
+        filtered_df = df[df["region"] == selected_region].copy()
         chart_title = f"Pink Morsels Sales Over Time - {selected_region.title()} Region"
 
+    # Aggregating daily revenue using exact lowercase indices
     daily_sales = (
-        filtered_df.groupby("Date", as_index=False)["Sales"]
+        filtered_df.groupby("date", as_index=False)["sales"]
         .sum()
-        .sort_values("Date")
+        .sort_values("date")
     )
 
     fig = px.line(
         daily_sales,
-        x="Date",
-        y="Sales",
+        x="date",
+        y="sales",
         title=chart_title,
         labels={
-            "Date": "Date",
-            "Sales": "Total Sales",
+            "date": "Date",
+            "sales": "Total Sales",
         },
-        markers=True,
     )
 
+    # Business Milestone: Price increase tracker (15 Jan 2021)
     price_increase_date = pd.to_datetime("2021-01-15")
 
     fig.add_shape(
@@ -145,23 +148,23 @@ def update_chart(selected_region):
         y0=0,
         y1=1,
         yref="paper",
-        line=dict(dash="dash", width=2),
+        line=dict(dash="dash", width=2, color="#E53E3E"),  # Red dashed marker for clarity
     )
 
     fig.add_annotation(
         x=price_increase_date,
         y=1,
         yref="paper",
-        text="Price Increase",
+        text="Price Increase (Jan 15, 2021)",
         showarrow=False,
         yanchor="bottom",
-        font=dict(size=12),
+        font=dict(size=12, color="#E53E3E"),
     )
 
     fig.update_layout(
         plot_bgcolor="#FFFFFF",
         paper_bgcolor="#FFFFFF",
-        title_font_size=22,
+        title_font_size=20,
         font=dict(
             family="Arial, sans-serif",
             size=14,
@@ -174,13 +177,11 @@ def update_chart(selected_region):
     fig.update_xaxes(
         showgrid=True,
         gridcolor="#E2E8F0",
-        title="Date",
     )
 
     fig.update_yaxes(
         showgrid=True,
         gridcolor="#E2E8F0",
-        title="Total Sales",
     )
 
     return fig
